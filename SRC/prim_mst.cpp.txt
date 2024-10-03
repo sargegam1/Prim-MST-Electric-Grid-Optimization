@@ -1,0 +1,109 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <list>
+using namespace std;
+
+// Structure to represent a node in the priority queue (min-heap)
+struct MinHeapNode {
+    int vertex, key;
+
+    // Custom comparison operator
+    bool operator>(const MinHeapNode& other) const {
+        return key > other.key;
+    }
+};
+
+// Class to represent a graph using adjacency list representation
+class Graph {
+    int V;  // Number of vertices (cities)
+    list<pair<int, int>>* adj;
+
+public:
+    Graph(int V);
+    void addEdge(int u, int v, int weight);
+    void primMST();
+};
+
+// Constructor to initialize the graph with V vertices
+Graph::Graph(int V) {
+    this->V = V;
+    adj = new list<pair<int, int>>[V];
+}
+
+// Add an edge between cities u and v with weight as the transmission cost
+void Graph::addEdge(int u, int v, int weight) {
+    adj[u].push_back(make_pair(v, weight));
+    adj[v].push_back(make_pair(u, weight));
+}
+
+// Function to implement Prim's MST using a priority queue
+void Graph::primMST() {
+    // Priority queue with custom comparator
+    priority_queue<MinHeapNode, vector<MinHeapNode>, greater<MinHeapNode>> pq;
+
+    // To store the minimum edge weight for each city
+    vector<int> key(V, INT_MAX);
+
+    // Array to store the parent nodes to print the MST
+    vector<int> parent(V, -1);
+
+    // To keep track of vertices included in the MST
+    vector<bool> inMST(V, false);
+
+    // Start the MST with vertex 0
+    key[0] = 0;
+    pq.push({0, 0});
+
+    while (!pq.empty()) {
+        // Get the vertex with the minimum key value
+        int u = pq.top().vertex;
+        pq.pop();
+
+        // Include the vertex in the MST
+        inMST[u] = true;
+
+        // Traverse all adjacent vertices of u
+        for (auto i = adj[u].begin(); i != adj[u].end(); ++i) {
+            int v = (*i).first;
+            int weight = (*i).second;
+
+            // If v is not in the MST and the weight of (u, v) is smaller than key[v]
+            if (!inMST[v] && key[v] > weight) {
+                key[v] = weight;
+                pq.push({v, key[v]});
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Print the constructed MST
+    cout << "Edge   Weight\n";
+    for (int i = 1; i < V; ++i)
+        cout << parent[i] << " - " << i << "    " << key[i] << endl;
+}
+
+int main() {
+    int V = 9;  // Number of cities (nodes)
+    Graph g(V);
+
+    g.addEdge(0, 1, 4);
+    g.addEdge(0, 7, 8);
+    g.addEdge(1, 2, 8);
+    g.addEdge(1, 7, 11);
+    g.addEdge(2, 3, 7);
+    g.addEdge(2, 8, 2);
+    g.addEdge(2, 5, 4);
+    g.addEdge(3, 4, 9);
+    g.addEdge(3, 5, 14);
+    g.addEdge(4, 5, 10);
+    g.addEdge(5, 6, 2);
+    g.addEdge(6, 7, 1);
+    g.addEdge(6, 8, 6);
+    g.addEdge(7, 8, 7);
+
+    g.primMST();
+
+    return 0;
+}
